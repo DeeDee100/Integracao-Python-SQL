@@ -12,11 +12,16 @@ dados_conexao = (
 conexao = pyodbc.connect(dados_conexao)
 cursor = conexao.cursor()
 
-listaTipos =['Galão', "Caixa", "Saco Pequeno", "Saco Grande", 'Unidade', "mL"]
-lista_codigos =[]
+comando = "SELECT id_venda FROM Vendas"
+cursor.execute(comando)
+lastID = cursor.fetchall()[-1][0]
 
+listaTipos =['Galão', "Caixa", "Saco Pequeno", "Saco Grande", 'Unidade', "mL"]
 
 def inserirCodigo():
+	cursor.execute(comando)
+	lastID = cursor.fetchall()[-1][0]
+
 	nomeProduto = entryDescript.get()
 	tipo = comboboxSelecionarTipo.get()
 	quantidade = int(entryQauntidade.get())
@@ -24,9 +29,12 @@ def inserirCodigo():
 	preco = float(entryPreco.get())
 	data_criacao = dt.datetime.now()
 	data_criacao = data_criacao.strftime("%d/%m/%y")
-	codigo = len(lista_codigos) + 1
-	codigo_str = "COD-{}".format(codigo)
-	lista_codigos.append((codigo_str, cliente, nomeProduto, tipo, quantidade, preco, data_criacao))
+	codigo = lastID + 1
+	inserirRow = """INSERT INTO Vendas(id_venda, cliente, produto, data_venda, preco, quantidade)
+	VALUES
+		(?,?,?,?,?,?)"""
+	cursor.execute(inserirRow,(codigo, cliente, nomeProduto, data_criacao, preco,quantidade))
+	cursor.commit()
 
 
 window = tk.Tk()
@@ -61,5 +69,3 @@ criarCodigo = tk.Button(text="Criar Código", command=inserirCodigo)
 criarCodigo.grid(row=8, column=0, padx=10, pady=10, sticky='nswe', columnspan=10)
 
 window.mainloop()
-
-print(lista_codigos)
